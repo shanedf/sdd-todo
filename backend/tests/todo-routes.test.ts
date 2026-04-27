@@ -130,4 +130,105 @@ describe('Todo Routes', () => {
       expect(response.headers['content-security-policy']).toBeDefined();
     });
   });
+
+  describe('PATCH /api/todos/:id', () => {
+    it('should toggle todo to completed', async () => {
+      const createRes = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        payload: { title: 'Test' },
+      });
+      const { id } = createRes.json();
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/todos/${id}`,
+        payload: { isCompleted: true },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.isCompleted).toBe(true);
+      expect(body.title).toBe('Test');
+    });
+
+    it('should toggle todo back to active', async () => {
+      const createRes = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        payload: { title: 'Test' },
+      });
+      const { id } = createRes.json();
+
+      await app.inject({
+        method: 'PATCH',
+        url: `/api/todos/${id}`,
+        payload: { isCompleted: true },
+      });
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/todos/${id}`,
+        payload: { isCompleted: false },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().isCompleted).toBe(false);
+    });
+
+    it('should return 404 for non-existent todo', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/api/todos/999',
+        payload: { isCompleted: true },
+      });
+      expect(response.statusCode).toBe(404);
+      expect(response.json().message).toBe('Todo not found');
+    });
+  });
+
+  describe('DELETE /api/todos/:id', () => {
+    it('should delete a todo and return 204', async () => {
+      const createRes = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        payload: { title: 'Test' },
+      });
+      const { id } = createRes.json();
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/api/todos/${id}`,
+      });
+      expect(response.statusCode).toBe(204);
+      expect(response.body).toBe('');
+    });
+
+    it('should return 404 for non-existent todo', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/api/todos/999',
+      });
+      expect(response.statusCode).toBe(404);
+      expect(response.json().message).toBe('Todo not found');
+    });
+
+    it('should actually remove the todo from database', async () => {
+      const createRes = await app.inject({
+        method: 'POST',
+        url: '/api/todos',
+        payload: { title: 'Test' },
+      });
+      const { id } = createRes.json();
+
+      await app.inject({
+        method: 'DELETE',
+        url: `/api/todos/${id}`,
+      });
+
+      const getRes = await app.inject({
+        method: 'GET',
+        url: '/api/todos',
+      });
+      expect(getRes.json()).toEqual([]);
+    });
+  });
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Todo } from './types/todo';
-import { getTodos, createTodo } from './api/todo-api';
+import { getTodos, createTodo, updateTodo as apiUpdateTodo, deleteTodo as apiDeleteTodo } from './api/todo-api';
 import { AddTodo } from './components/AddTodo';
 import { TodoList } from './components/TodoList';
 import './App.css';
@@ -23,11 +23,31 @@ function App() {
     setTodos((prev) => [...prev, todo]);
   };
 
+  const handleToggle = async (id: number, isCompleted: boolean) => {
+    const snapshot = todos;
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, isCompleted } : t)));
+    try {
+      await apiUpdateTodo(id, isCompleted);
+    } catch {
+      setTodos(snapshot);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const snapshot = todos;
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await apiDeleteTodo(id);
+    } catch {
+      setTodos(snapshot);
+    }
+  };
+
   return (
     <main className="app">
       <h1 className="app-title">todos</h1>
       <AddTodo onAdd={handleAddTodo} />
-      <TodoList todos={todos} />
+      <TodoList todos={todos} onToggle={handleToggle} onDelete={handleDelete} />
     </main>
   );
 }

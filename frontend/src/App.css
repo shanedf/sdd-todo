@@ -81,7 +81,73 @@
   line-height: 1.4;
 }
 
+.todo-view {
+  display: flex;
+  align-items: center;
+}
+
+.todo-toggle {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: none;
+}
+
+.todo-toggle:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='-10 -18 100 135'%3E%3Ccircle cx='50' cy='50' r='50' fill='none' stroke='%235dc2af' stroke-width='3'/%3E%3Cpath fill='%235dc2af' d='M72 25L42 71 27 56l-4 4 20 20 34-52z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  border-color: transparent;
+}
+
+.todo-item--completed .todo-label {
+  text-decoration: line-through;
+  color: var(--color-completed);
+}
+
 .todo-label {
   word-break: break-word;
   display: block;
+  flex: 1;
+}
+
+.todo-destroy {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-size: 30px;
+  cursor: pointer;
+  line-height: 1;
+  display: block;
+}
+
+.todo-destroy:hover {
+  color: #af5b5e;
+}
+
+@media (hover: hover) {
+  .todo-item .todo-destroy {
+    display: none;
+  }
+
+  .todo-item:hover .todo-destroy {
+    display: block;
+  }
 }

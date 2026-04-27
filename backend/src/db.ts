@@ -86,3 +86,18 @@ export function checkHealth(): boolean {
     return false;
   }
 }
+
+export function updateTodo(id: number, isCompleted: boolean): Todo | undefined {
+  const stmt = getDatabase().prepare('UPDATE todos SET is_completed = ? WHERE id = ?');
+  const result = stmt.run(isCompleted ? 1 : 0, id);
+  if (result.changes === 0) {
+    return undefined;
+  }
+  return getTodoById(id);
+}
+
+export function deleteTodo(id: number): boolean {
+  const stmt = getDatabase().prepare('DELETE FROM todos WHERE id = ?');
+  const result = stmt.run(id);
+  return result.changes > 0;
+}

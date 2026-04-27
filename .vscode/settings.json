@@ -4,6 +4,7 @@
         "npm init": true,
         "npm install": true,
         "npx tsc": true,
-        "npm test": true
+        "npm test": true,
+        "npx vitest": true
     }
 }

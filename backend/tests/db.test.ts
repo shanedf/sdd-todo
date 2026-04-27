@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
-import { initDatabase, getAllTodos, createTodo, getTodoById, checkHealth } from '../src/db.js';
+import { initDatabase, getAllTodos, createTodo, getTodoById, checkHealth, updateTodo, deleteTodo } from '../src/db.js';
 
 describe('Database', () => {
   let db: Database.Database;
@@ -88,6 +88,43 @@ describe('Database', () => {
   describe('checkHealth', () => {
     it('should return true when database is operational', () => {
       expect(checkHealth()).toBe(true);
+    });
+  });
+
+  describe('updateTodo', () => {
+    it('should toggle isCompleted to true', () => {
+      const created = createTodo('Test');
+      const updated = updateTodo(created.id, true);
+      expect(updated).toBeDefined();
+      expect(updated!.isCompleted).toBe(true);
+      expect(updated!.title).toBe('Test');
+    });
+
+    it('should toggle isCompleted back to false', () => {
+      const created = createTodo('Test');
+      updateTodo(created.id, true);
+      const updated = updateTodo(created.id, false);
+      expect(updated).toBeDefined();
+      expect(updated!.isCompleted).toBe(false);
+    });
+
+    it('should return undefined for non-existent ID', () => {
+      const result = updateTodo(999, true);
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('deleteTodo', () => {
+    it('should delete an existing todo and return true', () => {
+      const created = createTodo('Test');
+      const result = deleteTodo(created.id);
+      expect(result).toBe(true);
+      expect(getTodoById(created.id)).toBeUndefined();
+    });
+
+    it('should return false for non-existent ID', () => {
+      const result = deleteTodo(999);
+      expect(result).toBe(false);
     });
   });
 });
