@@ -81,7 +81,7 @@ function App() {
     <main className="app">
       <h1 className="app-title">todos</h1>
       <AddTodo onAdd={handleAddTodo} />
-      {error && <p className="error-message">{error}</p>}
+      {error && <p className="error-message" role="alert">{error}</p>}
       <TodoList todos={filteredTodos} onToggle={handleToggle} onDelete={handleDelete} />
       {todos.length > 0 && (
         <TodoFooter

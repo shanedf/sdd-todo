@@ -287,3 +287,73 @@ describe('App error handling', () => {
     expect(screen.queryByText('Could not update todo. Please try again.')).not.toBeInTheDocument();
   });
 });
+
+describe('App accessibility', () => {
+  it('renders semantic HTML landmarks', async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('main')).toBeInTheDocument();
+    expect(document.querySelector('form')).toBeInTheDocument();
+    expect(screen.getByRole('list')).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Filter todos' })).toBeInTheDocument();
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+  });
+
+  it('displays role="alert" on error messages', async () => {
+    mockCreateTodo.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('What needs to be done?');
+    await user.type(input, 'New todo{enter}');
+
+    await waitFor(() => {
+      const errorEl = screen.getByRole('alert');
+      expect(errorEl).toHaveTextContent('Could not add todo. Please try again.');
+    });
+  });
+
+  it('supports full keyboard navigation flow', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    // Input should be focused on load (autoFocus)
+    const input = screen.getByPlaceholderText('What needs to be done?');
+    expect(input).toHaveFocus();
+
+    // Tab through interactive elements
+    await user.tab();
+    expect(screen.getAllByRole('checkbox')[0]).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getAllByRole('button', { name: /Delete todo: First/ })[0]).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getAllByRole('checkbox')[1]).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getAllByRole('button', { name: /Delete todo: Second/ })[0]).toHaveFocus();
+
+    // Tab to footer filter buttons
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'All' })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Active' })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Completed' })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Clear completed' })).toHaveFocus();
+  });
+});
