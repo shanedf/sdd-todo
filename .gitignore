@@ -1,0 +1,6 @@
+# BMad Method - installed core & agents (managed by bmad-method installer)
+_bmad/core/
+_bmad/bmm/
+_bmad/_config/
+_bmad/scripts/
+.agents/
