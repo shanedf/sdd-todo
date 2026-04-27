@@ -1,6 +1,6 @@
 # Story 3.1: Error Handling & Resilience
 
-Status: review
+Status: done
 
 ## Story
 
@@ -154,6 +154,10 @@ Per UX spec: "Functional, never cute." Examples:
 - [Source: _bmad-output/planning-artifacts/architecture.md — Error Handling: try/catch in API functions → throw typed errors → component catches and rolls back]
 - [Source: _bmad-output/planning-artifacts/ux-design-specification.md — UX-DR10: Error Feedback]
 - [Source: _bmad-output/planning-artifacts/ux-design-specification.md — Interaction Patterns: Error → Text message, auto-dismiss ~3s]
+
+### Review Findings
+
+- [x] [Review][Defer] Missing `role="alert"` on error message for screen readers [frontend/src/App.tsx] — deferred, Story 3.2 covers accessibility
 
 ## Dev Agent Record
 
