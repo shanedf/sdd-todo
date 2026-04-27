@@ -3,6 +3,7 @@
         "mkdir": true,
         "npm init": true,
         "npm install": true,
-        "npx tsc": true
+        "npx tsc": true,
+        "npm test": true
     }
 }
