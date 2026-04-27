@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../src/App';
@@ -16,9 +16,10 @@ vi.mock('../src/api/todo-api', () => ({
   deleteCompletedTodos: vi.fn(),
 }));
 
-import { getTodos, updateTodo, deleteTodo, deleteCompletedTodos } from '../src/api/todo-api';
+import { getTodos, createTodo, updateTodo, deleteTodo, deleteCompletedTodos } from '../src/api/todo-api';
 
 const mockGetTodos = vi.mocked(getTodos);
+const mockCreateTodo = vi.mocked(createTodo);
 const mockUpdateTodo = vi.mocked(updateTodo);
 const mockDeleteTodo = vi.mocked(deleteTodo);
 const mockDeleteCompleted = vi.mocked(deleteCompletedTodos);
@@ -27,6 +28,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGetTodos.mockResolvedValue([...mockTodos]);
   mockDeleteCompleted.mockResolvedValue({ deleted: 1 });
+  mockCreateTodo.mockResolvedValue({ id: 3, title: 'New todo', isCompleted: false, createdAt: '2026-04-27T00:00:00.000Z' });
 });
 
 describe('App optimistic rollback', () => {
@@ -148,5 +150,140 @@ describe('App clear completed', () => {
     await waitFor(() => {
       expect(screen.getByText('Second todo')).toBeInTheDocument();
     });
+  });
+});
+
+describe('App error handling', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows error when createTodo fails', async () => {
+    mockCreateTodo.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('What needs to be done?');
+    await user.type(input, 'New todo{enter}');
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not add todo. Please try again.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error when updateTodo fails (toggle)', async () => {
+    mockUpdateTodo.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    await user.click(checkboxes[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not update todo. Please try again.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error when deleteTodo fails', async () => {
+    mockDeleteTodo.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    const deleteButtons = screen.getAllByRole('button', { name: /Delete todo/ });
+    await user.click(deleteButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not delete todo. Please try again.')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error when deleteCompletedTodos fails', async () => {
+    mockDeleteCompleted.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('Second todo')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Clear completed' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not clear completed. Please try again.')).toBeInTheDocument();
+    });
+  });
+
+  it('auto-dismisses error after 3 seconds', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mockCreateTodo.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText('What needs to be done?');
+    await user.type(input, 'New todo{enter}');
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not add todo. Please try again.')).toBeInTheDocument();
+    });
+
+    vi.advanceTimersByTime(3000);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Could not add todo. Please try again.')).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not show error on successful operations', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    mockUpdateTodo.mockResolvedValue({ id: 1, title: 'First todo', isCompleted: true, createdAt: '2026-04-27T00:00:00.000Z' });
+    const checkboxes = screen.getAllByRole('checkbox');
+    await user.click(checkboxes[0]);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Could not/)).not.toBeInTheDocument();
+    });
+  });
+
+  it('replaces previous error with new error', async () => {
+    mockUpdateTodo.mockRejectedValue(new Error('Network error'));
+    mockDeleteTodo.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    // Trigger toggle error
+    const checkboxes = screen.getAllByRole('checkbox');
+    await user.click(checkboxes[0]);
+    await waitFor(() => {
+      expect(screen.getByText('Could not update todo. Please try again.')).toBeInTheDocument();
+    });
+
+    // Trigger delete error — should replace the toggle error
+    const deleteButtons = screen.getAllByRole('button', { name: /Delete todo/ });
+    await user.click(deleteButtons[0]);
+    await waitFor(() => {
+      expect(screen.getByText('Could not delete todo. Please try again.')).toBeInTheDocument();
+    });
+
+    // Only one error message at a time
+    expect(screen.queryByText('Could not update todo. Please try again.')).not.toBeInTheDocument();
   });
 });

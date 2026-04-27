@@ -15,13 +15,24 @@ function App() {
   useEffect(() => {
     getTodos()
       .then(setTodos)
-      .catch(() => setError('Failed to load todos'))
+      .catch(() => setError('Could not load todos. Please try again.'))
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleAddTodo = async (title: string) => {
-    const todo = await createTodo(title);
-    setTodos((prev) => [...prev, todo]);
+    try {
+      const todo = await createTodo(title);
+      setTodos((prev) => [...prev, todo]);
+    } catch {
+      setError('Could not add todo. Please try again.');
+    }
   };
 
   const handleToggle = async (id: number, isCompleted: boolean) => {
@@ -31,6 +42,7 @@ function App() {
       await apiUpdateTodo(id, isCompleted);
     } catch {
       setTodos(snapshot);
+      setError('Could not update todo. Please try again.');
     }
   };
 
@@ -41,6 +53,7 @@ function App() {
       await apiDeleteTodo(id);
     } catch {
       setTodos(snapshot);
+      setError('Could not delete todo. Please try again.');
     }
   };
 
@@ -51,6 +64,7 @@ function App() {
       await apiDeleteCompleted();
     } catch {
       setTodos(snapshot);
+      setError('Could not clear completed. Please try again.');
     }
   };
 
@@ -67,6 +81,7 @@ function App() {
     <main className="app">
       <h1 className="app-title">todos</h1>
       <AddTodo onAdd={handleAddTodo} />
+      {error && <p className="error-message">{error}</p>}
       <TodoList todos={filteredTodos} onToggle={handleToggle} onDelete={handleDelete} />
       {todos.length > 0 && (
         <TodoFooter

@@ -1,6 +1,6 @@
 # Story 3.1: Error Handling & Resilience
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -27,22 +27,22 @@ so that I can trust the app with my tasks.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Wire error state to UI in App.tsx** (AC: #2, #5)
-  - [ ] 1.1: The `error` state (`useState<string | null>(null)`) already exists in App.tsx. Render it as `{error && <p className="error-message">{error}</p>}` between `<AddTodo>` and `<TodoList>`. This positions the message below input, above list per UX-DR10.
-  - [ ] 1.2: Implement auto-dismiss — when `error` changes to a non-null value, start a `setTimeout` of 3000ms that calls `setError(null)`. Use a `useEffect` with cleanup (`clearTimeout`) to prevent stale timers. Dependency array: `[error]`.
+- [x] **Task 1: Wire error state to UI in App.tsx** (AC: #2, #5)
+  - [x] 1.1: The `error` state (`useState<string | null>(null)`) already exists in App.tsx. Render it as `{error && <p className="error-message">{error}</p>}` between `<AddTodo>` and `<TodoList>`. This positions the message below input, above list per UX-DR10.
+  - [x] 1.2: Implement auto-dismiss — when `error` changes to a non-null value, start a `setTimeout` of 3000ms that calls `setError(null)`. Use a `useEffect` with cleanup (`clearTimeout`) to prevent stale timers. Dependency array: `[error]`.
 
-- [ ] **Task 2: Set error messages in all catch blocks** (AC: #1, #2, #4)
-  - [ ] 2.1: In `handleAddTodo` — the current implementation does NOT have optimistic update (it awaits the API and appends the result). Add a try/catch: on failure, call `setError('Could not add todo. Please try again.')`. The todo won't appear since it's not optimistic. No rollback needed.
-  - [ ] 2.2: In `handleToggle` — the catch block already rolls back. Add `setError('Could not update todo. Please try again.')` in the catch.
-  - [ ] 2.3: In `handleDelete` — the catch block already rolls back. Add `setError('Could not delete todo. Please try again.')` in the catch.
-  - [ ] 2.4: In `handleClearCompleted` — the catch block already rolls back. Add `setError('Could not clear completed. Please try again.')` in the catch.
-  - [ ] 2.5: In the `useEffect` fetch on mount — the catch block should set `setError('Could not load todos. Please try again.')` instead of or in addition to the current error handling.
+- [x] **Task 2: Set error messages in all catch blocks** (AC: #1, #2, #4)
+  - [x] 2.1: In `handleAddTodo` — the current implementation does NOT have optimistic update (it awaits the API and appends the result). Add a try/catch: on failure, call `setError('Could not add todo. Please try again.')`. The todo won't appear since it's not optimistic. No rollback needed.
+  - [x] 2.2: In `handleToggle` — the catch block already rolls back. Add `setError('Could not update todo. Please try again.')` in the catch.
+  - [x] 2.3: In `handleDelete` — the catch block already rolls back. Add `setError('Could not delete todo. Please try again.')` in the catch.
+  - [x] 2.4: In `handleClearCompleted` — the catch block already rolls back. Add `setError('Could not clear completed. Please try again.')` in the catch.
+  - [x] 2.5: In the `useEffect` fetch on mount — the catch block should set `setError('Could not load todos. Please try again.')` instead of or in addition to the current error handling.
 
-- [ ] **Task 3: CSS for error message** (AC: #5)
-  - [ ] 3.1: Add `.error-message` styles in `App.css`: `padding: 10px 15px` (matches footer padding), `color: var(--color-text)`, `font-size: var(--font-size-footer)` (14px), no background, no border, no colored banner. Just plain text per UX-DR10.
+- [x] **Task 3: CSS for error message** (AC: #5)
+  - [x] 3.1: Add `.error-message` styles in `App.css`: `padding: 10px 15px` (matches footer padding), `color: var(--color-text)`, `font-size: var(--font-size-footer)` (14px), no background, no border, no colored banner. Just plain text per UX-DR10.
 
-- [ ] **Task 4: Frontend tests — error display and auto-dismiss** (AC: all)
-  - [ ] 4.1: Update `frontend/tests/App.test.tsx`:
+- [x] **Task 4: Frontend tests — error display and auto-dismiss** (AC: all)
+  - [x] 4.1: Update `frontend/tests/App.test.tsx`:
     - Error message appears when createTodo API fails
     - Error message appears when updateTodo API fails (toggle)
     - Error message appears when deleteTodo API fails
@@ -163,8 +163,12 @@ Claude Opus 4.6
 
 ### Completion Notes
 
-Story context engine analysis completed — comprehensive developer guide created. Error state already exists in App.tsx (unused), all rollback catch blocks already exist. This story wires the error state to UI, adds setError calls, and implements auto-dismiss.
+All 4 tasks implemented and tested. 82 total tests passing (36 backend + 46 frontend). Wired existing error state to UI as plain text between AddTodo and TodoList. Added useEffect auto-dismiss timer (3s) with cleanup. Added setError calls in all 5 catch blocks (add, toggle, delete, clear, fetch). Added 7 new error handling tests including auto-dismiss with fake timers and error replacement. Frontend-only changes — no backend modifications.
 
 ### File List
+
+- frontend/src/App.tsx (modified — error rendering, auto-dismiss useEffect, setError in all catch blocks, try/catch on handleAddTodo)
+- frontend/src/App.css (modified — added .error-message styles)
+- frontend/tests/App.test.tsx (modified — added 7 error handling tests)
 
 ### Debug Log References
