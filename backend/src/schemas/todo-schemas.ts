@@ -90,3 +90,14 @@ export const deleteTodoSchema = {
     404: notFoundResponseSchema,
   },
 };
+
+export const deleteCompletedTodosSchema = {
+  response: {
+    200: {
+      type: 'object' as const,
+      properties: {
+        deleted: { type: 'integer' as const },
+      },
+    },
+  },
+};

@@ -42,3 +42,10 @@ export async function deleteTodo(id: number): Promise<void> {
     throw error;
   }
 }
+
+export async function deleteCompletedTodos(): Promise<{ deleted: number }> {
+  const response = await fetch(`${BASE_URL}/todos/completed`, {
+    method: 'DELETE',
+  });
+  return handleResponse<{ deleted: number }>(response);
+}

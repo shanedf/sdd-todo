@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { getAllTodos, createTodo, checkHealth, updateTodo, deleteTodo } from '../db.js';
-import { createTodoSchema, getTodosSchema, healthSchema, updateTodoSchema, deleteTodoSchema } from '../schemas/todo-schemas.js';
+import { getAllTodos, createTodo, checkHealth, updateTodo, deleteTodo, deleteCompletedTodos } from '../db.js';
+import { createTodoSchema, getTodosSchema, healthSchema, updateTodoSchema, deleteTodoSchema, deleteCompletedTodosSchema } from '../schemas/todo-schemas.js';
 
 interface CreateTodoBody {
   title: string;
@@ -51,6 +51,11 @@ export async function todoRoutes(fastify: FastifyInstance): Promise<void> {
       return reply.status(200).send(todo);
     },
   );
+
+  fastify.delete('/api/todos/completed', { schema: deleteCompletedTodosSchema }, async (_request, reply) => {
+    const deleted = deleteCompletedTodos();
+    return reply.status(200).send({ deleted });
+  });
 
   fastify.delete<{ Params: TodoParams }>(
     '/api/todos/:id',

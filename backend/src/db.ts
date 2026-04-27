@@ -101,3 +101,9 @@ export function deleteTodo(id: number): boolean {
   const result = stmt.run(id);
   return result.changes > 0;
 }
+
+export function deleteCompletedTodos(): number {
+  const stmt = getDatabase().prepare('DELETE FROM todos WHERE is_completed = 1');
+  const result = stmt.run();
+  return result.changes;
+}

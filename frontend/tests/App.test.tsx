@@ -13,17 +13,20 @@ vi.mock('../src/api/todo-api', () => ({
   createTodo: vi.fn(),
   updateTodo: vi.fn(),
   deleteTodo: vi.fn(),
+  deleteCompletedTodos: vi.fn(),
 }));
 
-import { getTodos, updateTodo, deleteTodo } from '../src/api/todo-api';
+import { getTodos, updateTodo, deleteTodo, deleteCompletedTodos } from '../src/api/todo-api';
 
 const mockGetTodos = vi.mocked(getTodos);
 const mockUpdateTodo = vi.mocked(updateTodo);
 const mockDeleteTodo = vi.mocked(deleteTodo);
+const mockDeleteCompleted = vi.mocked(deleteCompletedTodos);
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetTodos.mockResolvedValue([...mockTodos]);
+  mockDeleteCompleted.mockResolvedValue({ deleted: 1 });
 });
 
 describe('App optimistic rollback', () => {
@@ -69,6 +72,81 @@ describe('App optimistic rollback', () => {
     // After API rejection, todo should reappear
     await waitFor(() => {
       expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('App footer visibility', () => {
+  it('shows footer when todos exist', async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('1 item left')).toBeInTheDocument();
+    });
+  });
+
+  it('hides footer when no todos exist', async () => {
+    mockGetTodos.mockResolvedValue([]);
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.queryByText(/items? left/)).not.toBeInTheDocument();
+    });
+  });
+});
+
+describe('App filtering', () => {
+  it('shows only active todos when Active filter clicked', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Active' }));
+
+    expect(screen.getByText('First todo')).toBeInTheDocument();
+    expect(screen.queryByText('Second todo')).not.toBeInTheDocument();
+  });
+
+  it('shows only completed todos when Completed filter clicked', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('First todo')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Completed' }));
+
+    expect(screen.queryByText('First todo')).not.toBeInTheDocument();
+    expect(screen.getByText('Second todo')).toBeInTheDocument();
+  });
+});
+
+describe('App clear completed', () => {
+  it('removes completed todos optimistically', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('Second todo')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Clear completed' }));
+
+    expect(screen.queryByText('Second todo')).not.toBeInTheDocument();
+    expect(screen.getByText('First todo')).toBeInTheDocument();
+  });
+
+  it('rolls back clear completed on API failure', async () => {
+    mockDeleteCompleted.mockRejectedValue(new Error('Network error'));
+    const user = userEvent.setup();
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText('Second todo')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Clear completed' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Second todo')).toBeInTheDocument();
     });
   });
 });

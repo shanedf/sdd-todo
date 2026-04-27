@@ -231,4 +231,40 @@ describe('Todo Routes', () => {
       expect(getRes.json()).toEqual([]);
     });
   });
+
+  describe('DELETE /api/todos/completed', () => {
+    it('should delete completed todos and return count', async () => {
+      await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Active' } });
+      const res2 = await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Done 1' } });
+      const res3 = await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Done 2' } });
+
+      await app.inject({ method: 'PATCH', url: `/api/todos/${res2.json().id}`, payload: { isCompleted: true } });
+      await app.inject({ method: 'PATCH', url: `/api/todos/${res3.json().id}`, payload: { isCompleted: true } });
+
+      const response = await app.inject({ method: 'DELETE', url: '/api/todos/completed' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ deleted: 2 });
+    });
+
+    it('should leave active todos untouched', async () => {
+      await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Active' } });
+      const res2 = await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Done' } });
+      await app.inject({ method: 'PATCH', url: `/api/todos/${res2.json().id}`, payload: { isCompleted: true } });
+
+      await app.inject({ method: 'DELETE', url: '/api/todos/completed' });
+
+      const getRes = await app.inject({ method: 'GET', url: '/api/todos' });
+      const todos = getRes.json();
+      expect(todos).toHaveLength(1);
+      expect(todos[0].title).toBe('Active');
+    });
+
+    it('should return deleted 0 when no completed todos exist', async () => {
+      await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Active' } });
+
+      const response = await app.inject({ method: 'DELETE', url: '/api/todos/completed' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ deleted: 0 });
+    });
+  });
 });

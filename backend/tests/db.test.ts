@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
-import { initDatabase, getAllTodos, createTodo, getTodoById, checkHealth, updateTodo, deleteTodo } from '../src/db.js';
+import { initDatabase, getAllTodos, createTodo, getTodoById, checkHealth, updateTodo, deleteTodo, deleteCompletedTodos } from '../src/db.js';
 
 describe('Database', () => {
   let db: Database.Database;
@@ -125,6 +125,42 @@ describe('Database', () => {
     it('should return false for non-existent ID', () => {
       const result = deleteTodo(999);
       expect(result).toBe(false);
+    });
+  });
+
+  describe('deleteCompletedTodos', () => {
+    it('should remove only completed todos and return count', () => {
+      createTodo('Active 1');
+      const completed1 = createTodo('Completed 1');
+      const completed2 = createTodo('Completed 2');
+      createTodo('Active 2');
+      updateTodo(completed1.id, true);
+      updateTodo(completed2.id, true);
+
+      const count = deleteCompletedTodos();
+      expect(count).toBe(2);
+
+      const remaining = getAllTodos();
+      expect(remaining).toHaveLength(2);
+      expect(remaining.every((t) => !t.isCompleted)).toBe(true);
+    });
+
+    it('should return 0 when no completed todos exist', () => {
+      createTodo('Active 1');
+      createTodo('Active 2');
+      const count = deleteCompletedTodos();
+      expect(count).toBe(0);
+    });
+
+    it('should leave active todos untouched', () => {
+      const active = createTodo('Active');
+      const completed = createTodo('Completed');
+      updateTodo(completed.id, true);
+
+      deleteCompletedTodos();
+
+      expect(getTodoById(active.id)).toBeDefined();
+      expect(getTodoById(completed.id)).toBeUndefined();
     });
   });
 });
