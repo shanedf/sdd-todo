@@ -4,3 +4,18 @@ _bmad/bmm/
 _bmad/_config/
 _bmad/scripts/
 .agents/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Database
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Environment
+.env
