@@ -95,6 +95,7 @@ export const deleteCompletedTodosSchema = {
   response: {
     200: {
       type: 'object' as const,
+      required: ['deleted'] as const,
       properties: {
         deleted: { type: 'integer' as const },
       },

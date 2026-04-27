@@ -5,6 +5,9 @@
         "npm install": true,
         "npx tsc": true,
         "npm test": true,
-        "npx vitest": true
+        "npx vitest": true,
+        "git add": true,
+        "git commit": true,
+        "git push": true
     }
 }

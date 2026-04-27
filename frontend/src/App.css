@@ -188,8 +188,8 @@
   border-color: rgba(175, 47, 47, 0.1);
 }
 
-.filter--selected {
-  border-color: var(--color-selection) !important;
+.todo-filters button.filter--selected {
+  border-color: var(--color-selection);
 }
 
 .clear-completed {

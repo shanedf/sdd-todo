@@ -1,6 +1,6 @@
 # Story 2.2: Filter Todos & Bulk Clear
 
-Status: review
+Status: done
 
 ## Story
 
@@ -208,6 +208,12 @@ so that I can focus on what's left and clean up efficiently.
 - [Source: _bmad-output/planning-artifacts/ux-design-specification.md — Component Strategy: TodoFooter]
 - [Source: _bmad-output/planning-artifacts/ux-design-specification.md — Responsive Design & Accessibility]
 - [Source: _bmad-output/planning-artifacts/ux-design-specification.md — UX Consistency Patterns: Button Hierarchy]
+
+### Review Findings
+
+- [x] [Review][Patch] Missing `required` in deleteCompletedTodosSchema [backend/src/schemas/todo-schemas.ts:97] — Schema should include `required: ['deleted']` for correctness
+- [x] [Review][Patch] `!important` on `.filter--selected` avoidable with better selector [frontend/src/App.css:~195] — Use `.todo-filters button.filter--selected` instead of bare `.filter--selected` to avoid `!important`
+- [x] [Review][Defer] No aria-live announcement when footer disappears [frontend/src/App.tsx] — deferred, Story 3.2 covers accessibility
 
 ## Dev Agent Record
 
